@@ -23,15 +23,7 @@ void setup(){
   
 //  DEFINIR PUERTOS DIGITALES A UTILIZAR PARA LOS SENSORES 
 
-  pinMode(Pin0,INPUT);
-  pinMode(Pin1,INPUT);
-  pinMode(Pin2,INPUT);
-  pinMode(Pin3,INPUT);
-  pinMode(Pin4,INPUT);
-  pinMode(Pin5,INPUT);
-  pinMode(Pin6,INPUT);
-  pinMode(Pin7,INPUT);
-  
+//Entrada de sensores infrarrojos
   Pin0 = 2;
   Pin1 = 4;
   Pin2 = 7;
@@ -41,13 +33,29 @@ void setup(){
   Pin6 = A0;
   Pin7 = A1;
   
+ //Salida de pwm para motores
   PinPWM1 = 5;
   PinPWM2 = 6;
+  
+  //Entradas y salidas de ultrasónicos
+  PinTriggerF = 3;
+  PinEchoF = 9;
+  PinTriggerL = 10;
+  PinEchoL= 11;
+  
   
   Rango = [-4 -3 -2 -1 1 2 3 4];         //Rangos definidos para el control
   Bits_Rango = [];                       //Variable que almacena cada bit por su rango: Bits_Rango = [b0*R0 b1*R1 b2*R2 ... bn*Rn]
   Ponderado = 0;                         //Variable que almacena la suma de cada componente del arreglo Bits_Rango
   
+  pinMode(Pin0,INPUT);
+  pinMode(Pin1,INPUT);
+  pinMode(Pin2,INPUT);
+  pinMode(Pin3,INPUT);
+  pinMode(Pin4,INPUT);
+  pinMode(Pin5,INPUT);
+  pinMode(Pin6,INPUT);
+  pinMode(Pin7,INPUT);
   
   PIDController.SetMode(AUTOMATIC);
   
