@@ -3,7 +3,7 @@
 byte Kp = 2;
 byte Ki = 5;
 byte Kd = 1;
-byte Duty;
+int Duty;
 
 double SetPoint = 0;                     //Variable de referencia para el control
 double Input;                            //Variable que se quiere controlar
@@ -24,29 +24,29 @@ void setup(){
 //  DEFINIR PUERTOS DIGITALES A UTILIZAR PARA LOS SENSORES 
 
 //Entrada de sensores infrarrojos
-  Pin0 = 2;
-  Pin1 = 4;
-  Pin2 = 7;
-  Pin3 = 8;
-  Pin4 = 12;
-  Pin5 = 13;
-  Pin6 = A0;
-  Pin7 = A1;
+  byte Pin0 = 2;
+  byte Pin1 = 4;
+  byte Pin2 = 7;
+  byte Pin3 = 8;
+  byte Pin4 = 12;
+  byte Pin5 = 13;
+  byte Pin6 = A0;
+  byte Pin7 = A1;
   
  //Salida de pwm para motores
-  PinPWM1 = 5;
-  PinPWM2 = 6;
+  byte PinPWM1 = 5;
+  byte PinPWM2 = 6;
   
   //Entradas y salidas de ultrasónicos
-  PinTriggerF = 3;
-  PinEchoF = 9;
-  PinTriggerL = 10;
-  PinEchoL= 11;
+  byte PinTriggerF = 3;
+  byte PinEchoF = 9;
+  byte PinTriggerL = 10;
+  byte PinEchoL= 11;
   
   
-  Rango = [-4 -3 -2 -1 1 2 3 4];         //Rangos definidos para el control
-  Bits_Rango = [];                       //Variable que almacena cada bit por su rango: Bits_Rango = [b0*R0 b1*R1 b2*R2 ... bn*Rn]
-  Ponderado = 0;                         //Variable que almacena la suma de cada componente del arreglo Bits_Rango
+  byte Rango = [-4 -3 -2 -1 1 2 3 4];         //Rangos definidos para el control
+  byte Bits_Rango = [];                       //Variable que almacena cada bit por su rango: Bits_Rango = [b0*R0 b1*R1 b2*R2 ... bn*Rn]
+  byte Ponderado = 0;                         //Variable que almacena la suma de cada componente del arreglo Bits_Rango
   
   pinMode(Pin0,INPUT);
   pinMode(Pin1,INPUT);
@@ -65,28 +65,28 @@ void loop(){
  //***************************************** Paso 1: Leer los bits del sensor *******************************
  //b0 b1 b2 b3 b4 b5 b6 b7 --> 8 Pines digitales de entrada
  
-b0 = digitalRead(Pin0);
-b1 = digitalRead(Pin1);
-b2 = digitalRead(Pin2);
-b3 = digitalRead(Pin3);
-b4 = digitalRead(Pin4);
-b5 = digitalRead(Pin5);
-b6 = digitalRead(Pin6);
-b7 = digitalRead(Pin7);
+byte b0 = digitalRead(Pin0);
+byte b1 = digitalRead(Pin1);
+byte b2 = digitalRead(Pin2);
+byte b3 = digitalRead(Pin3);
+byte b4 = digitalRead(Pin4);
+byte b5 = digitalRead(Pin5);
+byte b6 = digitalRead(Pin6);
+byte b7 = digitalRead(Pin7);
 
-Bits = [b0 b1 b2 b3 b4 b5 b6 b7];  //Arreglo de unos y ceros
+byte Bits = [b0 b1 b2 b3 b4 b5 b6 b7];  //Arreglo de unos y ceros
 
  //***************************************** Paso 2: Pasar los bits a rango -4:4 *******************************
  //8 bits --> -4 -3 -2 -1 1 2 3 4
  
-for(i=0;i<8;i++){
+for(byte i=0;i<8;i++){
   Bits_Rango(i) = Bits(i)*Rango(i);
 }
 
  //***************************************** Paso 3: Hacer la ponderación de los rangos *******************************
  //Se suman todos los rangos correspondientes a los bits activos
 
-for(i=0;i<8;i++){
+for(byte i=0; i<8 ; i++){
   Ponderado = Ponderado + Bits_Rango(i);  // Numero entre -10 y 10
 }
 /*
