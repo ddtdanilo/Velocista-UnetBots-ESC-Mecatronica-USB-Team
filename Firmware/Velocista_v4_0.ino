@@ -1,11 +1,17 @@
 #include <NewPing.h>
 
-
-
-byte Duty = 255/6;                     //Ciclo de trabajo de las PWM --> Inicialmente en 50%
+byte Duty = 255/6;                     //Ciclo de trabajo de las PWM
 byte Duty1 = Duty;
 byte Duty2 = Duty;
 byte DutyObs = Duty;
+
+int Obs_l1 = 400;
+int Obs_l2 = 100;
+int Obs_w = 400;
+int Turn = 500;
+int Turn2 = 400;                //Paso 5
+int Turn3 = 700;                //Paso 7
+
 int time = 0;
 
 
@@ -26,7 +32,7 @@ byte PinPWM2 = 6;                    //Izquierda
   byte PinEchoF = 9;
   byte PinTriggerL = 10;
   byte PinEchoL= 11;
-  int MaxDist = 300;
+  int MaxDist = 50;
   int uSF;
   int uSL;
   int DistF;
@@ -74,80 +80,58 @@ void loop(){
 	Serial.print("   ");
 	Serial.print("\n");
 
-	int delayA = 200;
-
-	if(DistF <= 12 && DistF != 0) //Caso de obstaculo
+	if(DistF <= 14 && DistF != 0) //Caso de obstaculo
 	{
-		//Paso 1: Dar la vuelta para esquivar (Antihorario)
-		while(DistL >= 30 || DistL == 0) 
-		{
-			analogWrite(PinPWM1,DutyObs);     
-  			analogWrite(PinPWM2,0);		//freno rueda derecha
-                        uSL = sonarL.ping();
-	                DistL = uSL / US_ROUNDTRIP_CM;
-                        Serial.println(DistL);
-		}
-		do //Paso 2: Avanzar hasta dejar de ver el obstaculo
-		{
-                        uSL = sonarL.ping();
-	                DistL = uSL / US_ROUNDTRIP_CM;
-			analogWrite(PinPWM1,DutyObs);     
-  			analogWrite(PinPWM2,DutyObs);		//Sigo derecho
-                        Serial.println(DistL);
-  			//delay(delayA);
-		}while(DistL != 0);
-                
-                uSL = sonarL.ping();
-	        DistL = uSL / US_ROUNDTRIP_CM;
+  //Paso 1: Girar izquierda
 
-                //Paso 3: Corregir pos
-                while(DistL == 0 || DistL >= 12)
-                {
-                  analogWrite(PinPWM1,0);     
-  		  analogWrite(PinPWM2,DutyObs);
-                  uSL = sonarL.ping();
-	          DistL = uSL / US_ROUNDTRIP_CM; 
-                }
-                
-                uSL = sonarL.ping();
-	        DistL = uSL / US_ROUNDTRIP_CM;
+  analogWrite(PinPWM1,DutyObs);
+  analogWrite(PinPWM2,0);
+  delay(Turn);
 
-                //Paso 4: seguir objeto
-                do
-                {
-                  analogWrite(PinPWM1,DutyObs);     
-  		  analogWrite(PinPWM2,DutyObs);
-                  uSL = sonarL.ping();
-	          DistL = uSL / US_ROUNDTRIP_CM; 
-                }
-                while(DistL != 0 || DistL <= 12);
-                
-                uSL = sonarL.ping();
-	        DistL = uSL / US_ROUNDTRIP_CM;
+  //Paso 2:  Seguir recto
 
-                //Paso 5: volver a linea
-                while(DistL == 0)
-                {
-                  analogWrite(PinPWM1,DutyObs);     
-  		  analogWrite(PinPWM2,0);
-                  uSL = sonarL.ping();
-	          DistL = uSL / US_ROUNDTRIP_CM;
-                }
+  analogWrite(PinPWM1,DutyObs);
+  analogWrite(PinPWM2,DutyObs);
+  delay(Obs_l1);
+
+  //Paso 3: Girar derecha
+
+  analogWrite(PinPWM1,0);
+  analogWrite(PinPWM2,DutyObs);
+  delay(Turn);
+
+  //Paso 4: Seguir recto bordeando el objeto
+
+  analogWrite(PinPWM1,DutyObs);
+  analogWrite(PinPWM2,DutyObs);
+  delay(Obs_w);
+
+  //Paso 5: Girar derecha
+
+  analogWrite(PinPWM1,0);
+  analogWrite(PinPWM2,DutyObs);
+  delay(Turn2);
+
+  //Paso 6: Seguir recto hasta la linea
+
+  analogWrite(PinPWM1,DutyObs);
+  analogWrite(PinPWM2,DutyObs);
+  delay(Obs_l2);
+
+
+  //Paso 7: Girar izquierda para estar sobre la linea
+
+  analogWrite(PinPWM1,DutyObs);
+  analogWrite(PinPWM2,0);
+  delay(Turn3);
              
+  uSF = sonarF.ping();
+  DistF = uSF / US_ROUNDTRIP_CM;
 
+  Duty1 = DutyObs;
+  Duty2 = DutyObs;
 
-
-
-
-
-
-		analogWrite(PinPWM1,0);     
-  		analogWrite(PinPWM2,0);		//STOP
-                uSF = sonarF.ping();
-	        DistF = uSF / US_ROUNDTRIP_CM;
-  		delay(1000);
-
-	}
+  }
 
 
 	else
@@ -275,6 +259,6 @@ void loop(){
  		
  }
 
-  delay(10);
+  delay(1);
  
 }
