@@ -12,18 +12,18 @@ int Turn = 600;
 */
 
 int Paso1 = 700;   //Primer giro (izquierda)
-int Paso2 = 450;   //Primera recta
+int Paso2 = 250;   //Primera recta
 int Paso3 = 600;   //Segundo giro (derecha)
 int Paso4 = 550;   //Segunda recta
-int Paso5 = 500;   //Tercer giro (derecha)
+int Paso5 = 600;   //Tercer giro (derecha)
 int Paso6 = 300;   //Tercea recta
-int Paso7 = 650;   //Ultimo giro (izquierda)
+int Paso7 = 750;   //Ultimo giro (izquierda)
 
 
 int time = 0;
 
 
-// ADSIGNACION DE PINES DEL ATMEGA
+// ASIGNACION DE PINES DEL ATMEGA
 byte Pin0 = 13;
 byte Pin1 = 12;
 byte Pin2 = 4;
@@ -118,6 +118,19 @@ void keepGoing(int delayForward){
   delay(delayForward);
 }
 
+
+void measureDistL()
+{
+	uSL = sonarL.ping();
+	DistL = uSL / US_ROUNDTRIP_CM;
+}
+
+void measureDistF()
+{
+	uSF = sonarF.ping();
+	DistF = uSF / US_ROUNDTRIP_CM;
+}
+
 /*********************************************************************************/
 void setup(){
    
@@ -136,16 +149,16 @@ Serial.begin(115200);
 
 void loop(){
 
-	uSF = sonarF.ping();
+	
 	Serial.print("PingFront: ");
-	DistF = uSF / US_ROUNDTRIP_CM;
+	measureDistF();
 	Serial.print(DistF);
 	Serial.print(" cm");
 	Serial.print("   ");
 	
-	uSL = sonarL.ping();
+	
 	Serial.print("PingLat: ");
-	DistL = uSL / US_ROUNDTRIP_CM;
+	measureDistL();
 	Serial.print(DistL);
 	Serial.print(" cm");
 	Serial.print("   ");
@@ -153,58 +166,88 @@ void loop(){
         
         
         
-        readSensors();
+    readSensors();
 
 	
 
 	if(DistF <= 14 && DistF != 0) //Caso de obstaculo
 	{
-        stopWheels(300);
-
+      stopWheels(300);
  
- while(Ponderado > 0) 
- {
-  readSensors();
-  turnRight(0);
- }
- while(Ponderado < 0)
- {
-  readSensors();
-  turnLeft(0);
- }
- 
- stopWheels(0);
-  //Paso 1: Girar izquierda
-
-  turnLeft(Paso1);
-
-  //Paso 2:  Seguir recto
-
-  keepGoing(Paso2);
-
-  //Paso 3: Girar derecha
-
-  turnRight(Paso3);
-
-  //Paso 4: Seguir recto bordeando el objeto
-
-  keepGoing(Paso4);
-
-  //Paso 5: Girar derecha
-
-  turnRight(Paso5);
-
-  //Paso 6: Seguir recto hasta la linea
-
-  keepGoing(Paso6);
+ 	while(Ponderado > 0) 
+ 	{
+ 	 readSensors();
+ 	 turnRight(0);
+ 	}
+ 	while(Ponderado < 0)
+ 	{
+ 	 readSensors();
+ 	 turnLeft(0);
+ 	}
+ 	
+ 		stopWheels(500);
+ 	 	//Paso 1: Girar izquierda
+	        while(DistL == 0 || DistL > 20) 
+                {
+	 	turnLeft(0);
+                
+		measureDistL();
+                delay(35);
+                }
+                 stopWheels(500);
+	 	 //Paso 2:  Seguir recto
+		while(DistL <= 15 && DistL != 0){
+			keepGoing(0);
+                        measureDistL();
+                        delay(35);
+		}
+                stopWheels(500);
 
 
-  //Paso 7: Girar izquierda para estar sobre la linea
-
-  turnLeft(Paso7);
+	 	 //Paso 3: Girar derecha
+	
+	 	 turnRight(Paso3);
+                 stopWheels(500);
+	
+	 	 //Paso 4: Seguir recto bordeando el objeto
+	
+	 	// while(DistL <= 8 && DistL != 0){
+		//	measureDistL();
+			keepGoing(Paso4);
+		//}
+                 stopWheels(500);
+	
+	 	 //Paso 5: Girar derecha
+	
+	 	 turnRight(Paso5);
+                 stopWheels(500);
+	
+	 	 //Paso 6: Seguir recto hasta la linea
+	         measureDistL();
+                 while(DistL == 0 || DistL > 20) 
+                 {
+                   keepGoing(0);
+                   measureDistL();
+                   //delay(35);
+                 }
+                 
+                 stopWheels(500);
+                 
+	 	 while(DistL <= 20 && DistL != 0){
+			measureDistL();
+			keepGoing(0);//Paso6
+                        //delay(35);
+		}
+                 stopWheels(500);
+	
+	
+	 	 //Paso 7: Girar izquierda para estar sobre la linea
+	
+ 	 	turnLeft(Paso7);
+                stopWheels(500);
              
-  uSF = sonarF.ping();
-  DistF = uSF / US_ROUNDTRIP_CM;
+  		measureDistF();
+  		measureDistL();
 
 	}
 
