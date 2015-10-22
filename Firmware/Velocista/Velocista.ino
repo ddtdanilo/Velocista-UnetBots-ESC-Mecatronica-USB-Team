@@ -5,12 +5,20 @@ byte Duty1 = Duty;
 byte Duty2 = Duty;
 byte DutyObs = Duty;
 
-int Obs_l1 = 400;
-int Obs_l2 = 100;
-int Obs_w = 400;
-int Turn = 500;
-int Turn2 = 400;                //Paso 5
-int Turn3 = 700;                //Paso 7
+/*
+int Obs_l = 300;
+int Obs_w = 500;
+int Turn = 600;
+*/
+
+int Paso1 = 700;   //Primer giro (izquierda)
+int Paso2 = 450;   //Primera recta
+int Paso3 = 600;   //Segundo giro (derecha)
+int Paso4 = 550;   //Segunda recta
+int Paso5 = 500;   //Tercer giro (derecha)
+int Paso6 = 300;   //Tercea recta
+int Paso7 = 650;   //Ultimo giro (izquierda)
+
 
 int time = 0;
 
@@ -32,7 +40,7 @@ byte PinPWM2 = 6;                    //Izquierda
   byte PinEchoF = 9;
   byte PinTriggerL = 10;
   byte PinEchoL= 11;
-  int MaxDist = 50;
+  int MaxDist = 300;
   int uSF;
   int uSL;
   int DistF;
@@ -44,10 +52,73 @@ byte PinPWM2 = 6;                    //Izquierda
 
 //DEFINICION DE ARREGLOS Y VARIABLES AUXILIARES PARA EL CONTROL
 
+byte b0;
+byte b1;
+byte b2;
+byte b3;
+byte b4;
+byte Bits[5]; //Arreglo de unos y ceros
+
 int Rango[5] = {-5, -1, 0, 1, 5};        //Rangos definidos para el control
 int Bits_Rango[5];                       //Variable que almacena cada bit por su rango: Bits_Rango = [b0*R0 b1*R1 b2*R2 ... bn*Rn]
 int Ponderado = 0;                       //Variable que almacena la suma de cada componente del arreglo Bits_Rango 
 
+/************************** FUNCIONES ******************************************/
+
+
+void readSensors(){
+  
+  b0 = digitalRead(Pin0);
+  b1 = digitalRead(Pin1);
+  b2 = digitalRead(Pin2);
+  b3 = digitalRead(Pin3);
+  b4 = digitalRead(Pin4);
+	        
+  Bits[0] = b0;
+  Bits[1] = b1;
+  Bits[2] = b2;
+  Bits[3] = b3;
+  Bits[4] = b4;
+  
+  for(byte i=0;i<5;i++)
+ {
+  Bits_Rango[i] = Bits[i]*Rango[i];
+  }
+  //*****************************************Hacer la ponderación de los rangos *******************************
+  Ponderado = 0;
+  //Se suman todos los rangos correspondientes a los bits activos
+  for(byte i=0;i<5;i++)
+  {
+     Ponderado = Ponderado + Bits_Rango[i];  
+  }
+ 
+}
+
+void stopWheels(int delayStop){
+ analogWrite(PinPWM1,0); //Freno
+ analogWrite(PinPWM2,0);
+ delay(delayStop);
+}
+ 
+void turnRight(int delayTurn){
+  analogWrite(PinPWM1,0);
+  analogWrite(PinPWM2,DutyObs);
+  delay(delayTurn);
+}
+
+void turnLeft(int delayTurn){
+  analogWrite(PinPWM1,DutyObs);
+  analogWrite(PinPWM2,0);
+  delay(delayTurn);
+}
+
+void keepGoing(int delayForward){
+  analogWrite(PinPWM1,DutyObs);
+  analogWrite(PinPWM2,DutyObs);
+  delay(delayForward);
+}
+
+/*********************************************************************************/
 void setup(){
    
 //  DEFINICION DE PUERTOS DIGITALES A UTILIZAR PARA LOS SENSORES 
@@ -79,111 +150,82 @@ void loop(){
 	Serial.print(" cm");
 	Serial.print("   ");
 	Serial.print("\n");
+        
+        
+        
+        readSensors();
+
+	
 
 	if(DistF <= 14 && DistF != 0) //Caso de obstaculo
 	{
+        stopWheels(300);
+
+ 
+ while(Ponderado > 0) 
+ {
+  readSensors();
+  turnRight(0);
+ }
+ while(Ponderado < 0)
+ {
+  readSensors();
+  turnLeft(0);
+ }
+ 
+ stopWheels(0);
   //Paso 1: Girar izquierda
 
-  analogWrite(PinPWM1,DutyObs);
-  analogWrite(PinPWM2,0);
-  delay(Turn);
+  turnLeft(Paso1);
 
   //Paso 2:  Seguir recto
 
-  analogWrite(PinPWM1,DutyObs);
-  analogWrite(PinPWM2,DutyObs);
-  delay(Obs_l1);
+  keepGoing(Paso2);
 
   //Paso 3: Girar derecha
 
-  analogWrite(PinPWM1,0);
-  analogWrite(PinPWM2,DutyObs);
-  delay(Turn);
+  turnRight(Paso3);
 
   //Paso 4: Seguir recto bordeando el objeto
 
-  analogWrite(PinPWM1,DutyObs);
-  analogWrite(PinPWM2,DutyObs);
-  delay(Obs_w);
+  keepGoing(Paso4);
 
   //Paso 5: Girar derecha
 
-  analogWrite(PinPWM1,0);
-  analogWrite(PinPWM2,DutyObs);
-  delay(Turn2);
+  turnRight(Paso5);
 
   //Paso 6: Seguir recto hasta la linea
 
-  analogWrite(PinPWM1,DutyObs);
-  analogWrite(PinPWM2,DutyObs);
-  delay(Obs_l2);
+  keepGoing(Paso6);
 
 
   //Paso 7: Girar izquierda para estar sobre la linea
 
-  analogWrite(PinPWM1,DutyObs);
-  analogWrite(PinPWM2,0);
-  delay(Turn3);
+  turnLeft(Paso7);
              
   uSF = sonarF.ping();
   DistF = uSF / US_ROUNDTRIP_CM;
 
-  Duty1 = DutyObs;
-  Duty2 = DutyObs;
-
-  }
+	}
 
 
 	else
 	{
 
- 		//***************************************** Paso 1: Leer los bits del sensor *********************************
- 		
- 		byte b0 = digitalRead(Pin0);
- 		byte b1 = digitalRead(Pin1);
- 		byte b2 = digitalRead(Pin2);
- 		byte b3 = digitalRead(Pin3);
- 		byte b4 = digitalRead(Pin4);
-	
-		byte Bits[5] = {b0, b1, b2, b3, b4};  //Arreglo de unos y ceros
-	
-	 	//***************************************** Paso 2: Pasar los bits a rango -2:2 *******************************
-	 	Serial.print("\nBits:  ");
-	  	for(byte i=0;i<5;i++)
-	  	{
-	    Bits_Rango[i] = Bits[i]*Rango[i];
-	    Serial.print(Bits[i]);
-	  	}
-		Serial.print("   ");
-	 	
-	 	 
-	 	//***************************************** Paso 3: Hacer la ponderación de los rangos *******************************
- 	
-  		//Se suman todos los rangos correspondientes a los bits activos
-  		Serial.print("Bits_Rango");
-  		Serial.print("   ");
-  		for(byte i=0;i<5;i++)
-  		{
-  		  Ponderado = Ponderado + Bits_Rango[i];  // Numero entre -3 y 3
-  		  Serial.print(Bits_Rango[i]);
-  		}
-  		Serial.print("   ");
-  		Serial.print(Ponderado);
-  		Serial.print("   ");
-
+ 		readSensors();
   
 		/*
 		Ponderado (P)
 		Si P=0      --> El robot esta centrado en la línea
 		Si P>0      --> El robot se desvió a la izquierda
 		Si P<0      --> El robot se desvió a la derecha
-		Si |P| = 3  --> El robot esta en un cruce de 90 grados.
+		Si |P| = 6  --> El robot esta en un cruce de 90 grados.
 		*/
 
  		//***************************************** Paso 4: Cambiar rangos de -3:3 a 0:255 para controlar el Duty Cycle *******************************
  
-  		int Error = Ponderado;               //Valor entre -3:3
-  		byte Error_abs = abs(Ponderado);      //Valor entre 0:3
+  		int Error = Ponderado;               //Valor entre -6:6
+  		byte Error_abs = abs(Ponderado);      //Valor entre 0:6
   		byte Delta_Duty_down = map(Error_abs,0,6,0,Duty);    //Variacion del Duty para correccion 
   		byte Delta_Duty_up = map(Error_abs,0,20,0,255-Duty);  //Variacion del Duty para correccion
   		
@@ -212,10 +254,11 @@ void loop(){
  		
  		if(Error > 0)
  		{ //El vehiculo se desvio a la izquierda
- 		 	if(Error >= 5)
+ 		 	if(Error >= 5) //Curva
  		 	{
  		 	Duty1 = Duty-Delta_Duty_down;
  		 	Duty2 = Duty;
+                        
  		 	analogWrite(PinPWM1,Duty1);
  		 	analogWrite(PinPWM2,Duty2);
  		 	}
@@ -230,10 +273,11 @@ void loop(){
  		
  		if(Error < 0)
  		{    //El vehiculo se desvio a la derecha
- 			if(Error <= -5)
+ 			if(Error <= -5) //Curva
  			 {
- 			  Duty1 = Duty; //Duty anterior
+ 			  Duty1 = Duty; 
  			  Duty2 = Duty-Delta_Duty_down;
+                          
  			  analogWrite(PinPWM1,Duty1);
  			  analogWrite(PinPWM2,Duty2);
  			 }
@@ -259,6 +303,9 @@ void loop(){
  		
  }
 
-  delay(1);
+  delay(10);
  
 }
+
+
+
