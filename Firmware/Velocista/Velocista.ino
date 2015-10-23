@@ -3,7 +3,7 @@
 byte Duty = 255/6;                     //Ciclo de trabajo de las PWM
 byte Duty1 = Duty;
 byte Duty2 = Duty;
-byte DutyObs = Duty;
+byte DutyObs = 255/6;
 
 /*
 int Obs_l = 300;
@@ -17,7 +17,7 @@ int Paso3 = 600;   //Segundo giro (derecha)
 int Paso4 = 550;   //Segunda recta
 int Paso5 = 600;   //Tercer giro (derecha)
 int Paso6 = 300;   //Tercea recta
-int Paso7 = 750;   //Ultimo giro (izquierda)
+int Paso7 = 825;   //Ultimo giro (izquierda)
 
 
 int time = 0;
@@ -131,6 +131,13 @@ void measureDistF()
 	DistF = uSF / US_ROUNDTRIP_CM;
 }
 
+void pinLedOn(){
+  digitalWrite(Pin_Led,HIGH);
+}
+
+void pinLedOff(){
+  digitalWrite(Pin_Led,LOW);
+}
 /*********************************************************************************/
 void setup(){
    
@@ -141,8 +148,9 @@ void setup(){
   pinMode(Pin2,INPUT);
   pinMode(Pin3,INPUT);
   pinMode(Pin4,INPUT);
+  pinMode(Pin_Led,OUTPUT);
 
-
+  pinLedOff();
 Serial.begin(115200);
  
 }
@@ -169,10 +177,11 @@ void loop(){
     readSensors();
 
 	
-
+        
 	if(DistF <= 14 && DistF != 0) //Caso de obstaculo
 	{
-      stopWheels(300);
+        pinLedOn();
+      stopWheels(1000);
  
  	while(Ponderado > 0) 
  	{
@@ -185,7 +194,7 @@ void loop(){
  	 turnLeft(0);
  	}
  	
- 		stopWheels(500);
+ 		stopWheels(10);
  	 	//Paso 1: Girar izquierda
 	        while(DistL == 0 || DistL > 20) 
                 {
@@ -194,20 +203,20 @@ void loop(){
 		measureDistL();
                 delay(35);
                 }
-                 stopWheels(500);
+                 stopWheels(10);
 	 	 //Paso 2:  Seguir recto
 		while(DistL <= 15 && DistL != 0){
 			keepGoing(0);
                         measureDistL();
                         delay(35);
 		}
-                stopWheels(500);
+                stopWheels(10);
 
 
 	 	 //Paso 3: Girar derecha
 	
 	 	 turnRight(Paso3);
-                 stopWheels(500);
+                 stopWheels(10);
 	
 	 	 //Paso 4: Seguir recto bordeando el objeto
 	
@@ -215,36 +224,36 @@ void loop(){
 		//	measureDistL();
 			keepGoing(Paso4);
 		//}
-                 stopWheels(500);
+                 stopWheels(10);
 	
 	 	 //Paso 5: Girar derecha
 	
 	 	 turnRight(Paso5);
-                 stopWheels(500);
+                 stopWheels(10);
 	
 	 	 //Paso 6: Seguir recto hasta la linea
 	         measureDistL();
-                 while(DistL == 0 || DistL > 20) 
+                 while(DistL == 0 || DistL > 20) //Mientras no cve el obstaculo
                  {
                    keepGoing(0);
                    measureDistL();
                    //delay(35);
                  }
-                 
-                 stopWheels(500);
-                 
+                 // keepGoing(50);
+                 stopWheels(1000);
+                 /*
 	 	 while(DistL <= 20 && DistL != 0){
 			measureDistL();
 			keepGoing(0);//Paso6
                         //delay(35);
 		}
-                 stopWheels(500);
-	
+                 stopWheels(50);
+	          */
 	
 	 	 //Paso 7: Girar izquierda para estar sobre la linea
 	
  	 	turnLeft(Paso7);
-                stopWheels(500);
+                stopWheels(10);
              
   		measureDistF();
   		measureDistL();
@@ -254,7 +263,8 @@ void loop(){
 
 	else
 	{
-
+                pinLedOn();
+                
  		readSensors();
   
 		/*
@@ -349,6 +359,3 @@ void loop(){
   delay(10);
  
 }
-
-
-
