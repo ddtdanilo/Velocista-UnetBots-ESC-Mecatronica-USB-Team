@@ -1,6 +1,6 @@
 #include <NewPing.h>
 
-byte Duty = 255/6;                     //Ciclo de trabajo de las PWM
+byte Duty = 45;                     //Ciclo de trabajo de las PWM
 byte Duty1 = Duty;
 byte Duty2 = Duty;
 byte DutyObs = 255/6;
@@ -240,7 +240,7 @@ void loop(){
                    //delay(35);
                  }
                  // keepGoing(50);
-                 stopWheels(1000);
+                 stopWheels(200);
                  /*
 	 	 while(DistL <= 20 && DistL != 0){
 			measureDistL();
