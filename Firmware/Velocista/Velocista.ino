@@ -1,9 +1,9 @@
 #include <NewPing.h>
 
-byte Duty = 45;                     //Ciclo de trabajo de las PWM
+byte Duty = 255/4;                     //Ciclo de trabajo de las PWM
 byte Duty1 = Duty;
 byte Duty2 = Duty;
-byte DutyObs = 255/6;
+byte DutyObs = 255/4;
 
 /*
 int Obs_l = 300;
@@ -17,7 +17,7 @@ int Paso3 = 600;   //Segundo giro (derecha)
 int Paso4 = 550;   //Segunda recta
 int Paso5 = 600;   //Tercer giro (derecha)
 int Paso6 = 300;   //Tercea recta
-int Paso7 = 825;   //Ultimo giro (izquierda)
+int Paso7 = 950;   //Ultimo giro (izquierda)
 
 
 int time = 0;
@@ -115,6 +115,12 @@ void turnLeft(int delayTurn){
 void keepGoing(int delayForward){
   analogWrite(PinPWM1,DutyObs);
   analogWrite(PinPWM2,DutyObs);
+  delay(delayForward);
+}
+
+void SlowDown(int delayForward){
+  analogWrite(PinPWM1,255/5);
+  analogWrite(PinPWM2,225/5);
   delay(delayForward);
 }
 
@@ -229,18 +235,19 @@ void loop(){
 	 	 //Paso 5: Girar derecha
 	
 	 	 turnRight(Paso5);
-                 stopWheels(10);
+                 stopWheels(500);
 	
 	 	 //Paso 6: Seguir recto hasta la linea
 	         measureDistL();
                  while(DistL == 0 || DistL > 20) //Mientras no cve el obstaculo
                  {
                    keepGoing(0);
+                   //SlowDown(0);
                    measureDistL();
                    //delay(35);
                  }
                  // keepGoing(50);
-                 stopWheels(200);
+                 stopWheels(1000);
                  /*
 	 	 while(DistL <= 20 && DistL != 0){
 			measureDistL();
