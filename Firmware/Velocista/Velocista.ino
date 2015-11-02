@@ -1,9 +1,9 @@
 #include <NewPing.h>
 
-byte Duty = 255/4;                     //Ciclo de trabajo de las PWM
+byte Duty = 59;                     //Ciclo de trabajo de las PWM
 byte Duty1 = Duty;
 byte Duty2 = Duty;
-byte DutyObs = 255/4;
+byte DutyObs = 59;
 
 /*
 int Obs_l = 300;
@@ -14,8 +14,8 @@ int Turn = 600;
 int Paso1 = 700;   //Primer giro (izquierda)
 int Paso2 = 250;   //Primera recta
 int Paso3 = 600;   //Segundo giro (derecha)
-int Paso4 = 550;   //Segunda recta
-int Paso5 = 600;   //Tercer giro (derecha)
+int Paso4 = 525;   //Segunda recta
+int Paso5 = 575;   //Tercer giro (derecha)
 int Paso6 = 300;   //Tercea recta
 int Paso7 = 950;   //Ultimo giro (izquierda)
 
@@ -124,6 +124,11 @@ void SlowDown(int delayForward){
   delay(delayForward);
 }
 
+void Spin(int delayForward){
+  analogWrite(PinPWM1,DutyObs);
+  analogWrite(PinPWM2,DutyObs*2/3);
+  delay(delayForward);
+}
 
 void measureDistL()
 {
@@ -143,6 +148,16 @@ void pinLedOn(){
 
 void pinLedOff(){
   digitalWrite(Pin_Led,LOW);
+}
+
+void printSerial(){
+  Serial.print("\n");
+  Serial.print("Bits: ");
+ for(byte i=0;i<5;i++)
+ {
+    Serial.print(Bits[i]);
+  }
+ Serial.print("   \n"); 
 }
 /*********************************************************************************/
 void setup(){
@@ -179,12 +194,13 @@ void loop(){
 	Serial.print("\n");
         
         
-        
+    
     readSensors();
+    printSerial();
 
 	
         
-	if(DistF <= 14 && DistF != 0) //Caso de obstaculo
+	if(DistF <= 15 && DistF != 0) //Caso de obstaculo
 	{
         pinLedOn();
       stopWheels(1000);
@@ -258,12 +274,22 @@ void loop(){
 	          */
 	
 	 	 //Paso 7: Girar izquierda para estar sobre la linea
-	
- 	 	turnLeft(Paso7);
-                stopWheels(10);
+	        readSensors();
+ 	 	while(Ponderado >= 0){
+                 readSensors();
+                 Spin(0);
+                 
+                 
+                 }
+                 stopWheels(200);
+                //turnLeft(Paso7);
+                //stopWheels(10);
+                
+                
              
   		measureDistF();
   		measureDistL();
+  
 
 	}
 
